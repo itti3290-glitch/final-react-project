@@ -1,16 +1,30 @@
 import express from 'express';
-import pool from './db.js';
+import cors from 'cors';
+import authRoutes from './routes/auth.js';
+import patientRoutes from './routes/patients.js';
+import taskRoutes from './routes/tasks.js';
+import meRoutes from './routes/me.js';
+import userRoutes from './routes/users.js';
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+
+app.use(cors());
+app.use(express.json());
 
 app.get('/api/hello', (req, res) => {
   res.json({ message: 'שלום מהשרת!' });
 });
 
-app.get('/api/patients', async (req, res) => {
-  const result = await pool.query('SELECT * FROM patients');
-  res.json(result.rows);
+app.use('/api/auth', authRoutes);
+app.use('/api/patients', patientRoutes);
+app.use('/api/tasks', taskRoutes);
+app.use('/api/me', meRoutes);
+app.use('/api/users', userRoutes);
+
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ message: 'שגיאה בשרת, נסו שוב' });
 });
 
 app.listen(PORT, () => {

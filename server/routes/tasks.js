@@ -9,10 +9,12 @@ const CATEGORIES = ['doctor', 'care', 'visit', 'shopping', 'other'];
 const TASK_SELECT = `
   SELECT t.*, 'M-' || (1000 + t.id) AS code, p.full_name AS patient_name,
          COUNT(s.user_id)::int AS signed_up_count,
-         COALESCE(BOOL_OR(s.user_id = $1), false) AS is_mine
+         COALESCE(BOOL_OR(s.user_id = $1), false) AS is_mine,
+         COALESCE(array_agg(u.full_name ORDER BY s.created_at) FILTER (WHERE u.id IS NOT NULL), '{}') AS volunteer_names
     FROM tasks t
     JOIN patients p ON p.id = t.patient_id
-    LEFT JOIN task_signups s ON s.task_id = t.id`;
+    LEFT JOIN task_signups s ON s.task_id = t.id
+    LEFT JOIN users u ON u.id = s.user_id`;
 
 function visibleTo(user) {
   return user.role === 'admin'
